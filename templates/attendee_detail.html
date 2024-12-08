@@ -1,11 +1,12 @@
 {% extends "index.html" %}
-
+{% load static %}
 {% block title %}Attendee Details |{% endblock %}
 
 {% block content %}
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container">
+        <img src="{% static 'images/sda.png' %}" alt="Logo" class="img-fluid me-2" style="max-width: 50px;">
         <a class="navbar-brand" href="#">Manticao Central Church</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
             aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -13,6 +14,9 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a href="{% url 'attendance_sheet' %}" class="nav-link">Attendance Sheet</a>
+                </li>
                 <li class="nav-item">
                     <a href="{% url 'logout' %}" class="nav-link">Logout</a>
                 </li>

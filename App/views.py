@@ -154,6 +154,28 @@ def sign_in_attendee(request, attendee_id):
     return redirect('dashboard')
 
 @login_required
+def attendance_sheet(request):
+    attendees = Attendee.objects.prefetch_related('attendance_set')
+    static_days = [
+        datetime(2024, 12, 8).date(),
+        datetime(2024, 12, 9).date(),
+        datetime(2024, 12, 10).date(),
+        datetime(2024, 12, 11).date(),
+        datetime(2024, 12, 12).date(),
+        datetime(2024, 12, 13).date(),
+        datetime(2024, 12, 14).date(),
+    ]
+
+    # Attach attendance records to each attendee for template access
+    for attendee in attendees:
+        attendee.attendance_records = attendee.attendance_set.all()
+
+    return render(request, "attendance_sheet.html", {
+        "attendees": attendees,
+        "static_days": static_days,
+    })
+
+@login_required
 def logout(request):
     auth_logout(request)
     messages.success(request, "You have been logged out successfully.")

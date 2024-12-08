@@ -1,10 +1,11 @@
 {% extends "index.html" %}
 {% block title %}Dashboard |{% endblock %}
-
+{% load static %}
 {% block content %}
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container">
+        <img src="{% static 'images/sda.png' %}" alt="Logo" class="img-fluid me-2" style="max-width: 50px;">
         <a class="navbar-brand" href="#">Manticao Central Church</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
             aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -12,6 +13,9 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a href="{% url 'attendance_sheet' %}" class="nav-link">Attendance Sheet</a>
+                </li>
                 <li class="nav-item">
                     <a href="{% url 'logout' %}" class="nav-link">Logout</a>
                 </li>
@@ -25,7 +29,7 @@
     <!-- Heading and Action Buttons -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Attendees Dashboard</h1>
-        
+
         <!-- Action buttons group -->
         <div>
             <button type="button" class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#modalId">
@@ -42,7 +46,7 @@
             <form method="GET" action="{% url 'dashboard' %}" class="d-flex align-items-center">
                 <div class="form-floating me-3">
                     <!-- Dropdown for Date Selection -->
-                    <select class="form-select" id="date" name="date" aria-label="Select Date">
+                    <select class="form-select" id="date" name="date">
                         <option value="" disabled selected>Select Date</option>
                         <option value="2024-12-07">December 7, 2024</option>
                         <option value="2024-12-08">December 8, 2024</option>
@@ -53,7 +57,6 @@
                         <option value="2024-12-13">December 13, 2024</option>
                         <option value="2024-12-14">December 14, 2024</option>
                     </select>
-                    <label for="date" class="form-label">Select Date</label>
                 </div>
                 <!-- Filter Button -->
                 <button type="submit" class="btn btn-primary d-flex align-items-center">
@@ -63,7 +66,6 @@
             </form>
         </div>
     </div>
-    
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div class="input-group">
@@ -72,21 +74,7 @@
             <button class="btn btn-primary" type="button" id="searchButton">Search</button>
         </div>
     </div>
-    {% if messages %}
-    {% for message in messages %}
-        <div class="alert 
-            {% if message.tags == 'success' %}
-                alert-success  <!-- Green for success -->
-            {% elif message.tags == 'error' %}
-                alert-danger  <!-- Red for error -->
-            {% else %}
-                alert-info     <!-- Blue for other types, e.g., warnings or info -->
-            {% endif %}
-        ">
-            <p>{{ message }}</p>
-        </div>
-    {% endfor %}
-{% endif %}
+
     <!-- Attendees Table -->
     <table class="table table-hover table-bordered shadow-sm" id="attendeesTable">
         <thead class="table-primary">
@@ -97,11 +85,12 @@
                 <th>Address</th>
                 <th>Adventist?</th>
                 <th>Age</th>
+                <th>Status</th>
             </tr>
         </thead>
         <tbody>
             {% for attendee in page_obj %}
-            <tr>
+            <tr data-age="{{ attendee.age }}">
                 <td onclick="window.location.href='{% url 'attendee_detail' attendee.id %}'" style="cursor: pointer;">
                     {{ forloop.counter }}</td>
                 <td onclick="window.location.href='{% url 'attendee_detail' attendee.id %}'" style="cursor: pointer;">
@@ -114,21 +103,24 @@
                     {{ attendee.is_adventist }}</td>
                 <td onclick="window.location.href='{% url 'attendee_detail' attendee.id %}'" style="cursor: pointer;">
                     {{ attendee.age }}</td>
+                <td class="status-cell">
+                    <!-- Dynamically populated status will go here -->
+                </td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="6">No attendees found.</td>
+                <td colspan="7">No attendees found.</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
-    
+
     <!-- Pagination Controls -->
     <div class="d-flex justify-content-between">
         <div>
             {% if page_obj.has_previous %}
-                <a href="?page=1" class="btn btn-secondary">First</a>
-                <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-secondary">Previous</a>
+            <a href="?page=1" class="btn btn-secondary">First</a>
+            <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-secondary">Previous</a>
             {% endif %}
         </div>
         <div class="text-center">
@@ -136,56 +128,12 @@
         </div>
         <div>
             {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}" class="btn btn-secondary">Next</a>
-                <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-secondary">Last</a>
+            <a href="?page={{ page_obj.next_page_number }}" class="btn btn-secondary">Next</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-secondary">Last</a>
             {% endif %}
         </div>
     </div>
-    
-</div>
 
-<!-- Modal for Registration -->
-<div class="modal fade" id="modalId" tabindex="-1" role="dialog" aria-labelledby="modalTitleId" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalTitleId">Register Attendee</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form method="POST" action="{% url 'register' %}">
-                    {% csrf_token %}
-                    <div class="form-floating mb-3">
-                        <input type="text" class="form-control" name="first_name" id="first_name" placeholder="First Name" required />
-                        <label for="first_name">First Name</label>
-                    </div>
-                    <div class="form-floating mb-3">
-                        <input type="text" class="form-control" name="last_name" id="last_name" placeholder="Last Name" required />
-                        <label for="last_name">Last Name</label>
-                    </div>
-                    <div class="form-floating mb-3">
-                        <input type="text" class="form-control" name="address" id="address" placeholder="Address" required />
-                        <label for="address">Address</label>
-                    </div>
-                    <div class="form-floating mb-3">
-                        <input type="number" class="form-control" name="age" id="age" placeholder="Age" required />
-                        <label for="age">Age</label>
-                    </div>
-                    <div class="form mb-3">
-                        <select class="form-control" name="is_adventist" id="is_adventist" required>
-                            <option value="" disabled selected>Adventist?</option>
-                            <option value="Yes">Yes</option>
-                            <option value="No">No</option>
-                        </select>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Register</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
 </div>
 
 <!-- JavaScript for Search, Filter, and Export -->
@@ -211,40 +159,64 @@
 
     // Export to CSV Functionality
     document.getElementById("exportCsvButton").addEventListener("click", function () {
+        const searchQuery = document.getElementById("searchInput").value.trim().toLowerCase();  // Get the search query and convert to lowercase
         const table = document.getElementById("attendeesTable");
         const rows = table.querySelectorAll("tr");
-        let csvContent = "";
-
-        rows.forEach((row) => {
-            const cells = row.querySelectorAll("th, td");
-            const rowContent = Array.from(cells).map(cell => cell.innerText).join(",");
-            csvContent += rowContent + "\n";
+        let csvContent = "No.,First Name,Last Name,Address,Adventist?,Age,Status\n";
+    
+        rows.forEach((row, index) => {
+            const cells = row.querySelectorAll("td, th");
+            if (index > 0) { // Skip header row
+                // Check if the row matches the search query
+                let rowContent = Array.from(cells).map(cell => {
+                    return cell.innerText.trim().toLowerCase();  // Normalize text for case-insensitive search
+                }).join(" ");
+                
+                // If any part of the row matches the search query
+                if (rowContent.includes(searchQuery)) {
+                    // Clean up spaces and prepare the row for CSV
+                    const rowData = Array.from(cells).map(cell => {
+                        let cleanedText = cell.innerText.replace(/\s+/g, ' ').trim();
+                        return `"${cleanedText.replace(/"/g, '""')}"`;
+                    }).join(",");
+                    csvContent += rowData + "\n";
+                }
+            }
         });
-
-        const blob = new Blob([csvContent], { type: "text/csv" });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.setAttribute("href", url);
-        a.setAttribute("download", "attendees.csv");
-        a.click();
-        window.URL.revokeObjectURL(url);
+    
+        if (csvContent === "No.,First Name,Last Name,Address,Adventist?,Age,Status\n") {
+            alert("No results found for the search query.");
+        } else {
+            const blob = new Blob([csvContent], { type: "text/csv" });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.setAttribute("href", url);
+            a.setAttribute("download", "attendees.csv");
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
     });
+    
+    // JavaScript to identify the status based on the age
+    document.addEventListener('DOMContentLoaded', function () {
+        // Get all rows in the table
+        const rows = document.querySelectorAll('#attendeesTable tbody tr');
 
-    // Date Filter Functionality
-    document.getElementById("filterButton").addEventListener("click", function () {
-        const dateFilter = document.getElementById("dateFilter").value;
-        let url = window.location.href.split('?')[0]; // Remove any existing query string
-        let params = [];
+        // Loop through each row
+        rows.forEach(row => {
+            // Get the age from the data-age attribute
+            const age = parseInt(row.getAttribute('data-age'));
+            const statusCell = row.querySelector('.status-cell'); // Get the status cell for this row
 
-        if (dateFilter) {
-            params.push('date=' + dateFilter);
-        }
-
-        if (params.length > 0) {
-            url += '?' + params.join('&');
-        }
-
-        window.location.href = url;
+            // Set the status based on the age
+            if (age < 18) {
+                statusCell.innerHTML = 'Minor';
+            } else if (age >= 60) {
+                statusCell.innerHTML = 'Senior Citizen';
+            } else {
+                statusCell.innerHTML = 'Adult';
+            }
+        });
     });
 </script>
 {% endblock %}

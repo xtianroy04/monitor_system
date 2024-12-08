@@ -1,0 +1,151 @@
+{% extends "index.html" %}
+{% load static %}
+{% block title %}Attendance Sheet |{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+        <img src="{% static 'images/sda.png' %}" alt="Logo" class="img-fluid me-2" style="max-width: 50px;">
+        <a class="navbar-brand" href="{% url 'dashboard' %}">Manticao Central Church</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a href="{% url 'attendance_sheet' %}" class="nav-link">Attendance Sheet</a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'logout' %}" class="nav-link">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <h2 class="text-center">Attendance Sheet (Dec 8 - Dec 14, 2024)</h2>
+    
+    <!-- Filter Button to Show Only Those Present All Week -->
+    <div class="mb-3">
+        <button id="filter-present-all-week" class="btn btn-primary">Show Only Present from Dec 8-13</button>
+        <button id="export-csv" class="btn btn-success">Export to CSV</button>
+    </div>
+
+    <table class="table table-hover table-bordered">
+        <thead class="table-primary text-center">
+            <tr>
+                <th>Name</th>
+                <th>Dec 8</th>
+                <th>Dec 9</th>
+                <th>Dec 10</th>
+                <th>Dec 11</th>
+                <th>Dec 12</th>
+                <th>Dec 13</th>
+                <th>Dec 14</th>
+            </tr>
+        </thead>
+        <tbody id="attendance-table-body">
+            {% for attendee in attendees %}
+            <tr class="attendance-row">
+                <td>{{ attendee.first_name }} {{ attendee.last_name }}</td>
+                {% for day in static_days %}
+                <td class="text-center">
+                    {% for record in attendee.attendance_records %}
+                        {% if record.date == day %}
+                            {% if record.status == "Present" %}
+                                <i class="fas fa-check text-success">P</i> <!-- Present -->
+                            {% else %}
+                                <i class="fas fa-times text-danger"></i> <!-- Absent -->
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% block js %}
+<script>
+// Function to convert the table to CSV format and trigger download (Only visible rows)
+document.getElementById('export-csv').addEventListener('click', function() {
+    const table = document.querySelector('table');
+    let csvContent = '';
+    
+    // Extract table headers
+    const headers = table.querySelectorAll('th');
+    let headerRow = [];
+    headers.forEach(header => {
+        headerRow.push(header.textContent.trim());
+    });
+    csvContent += headerRow.join(',') + '\n';
+    
+    // Extract table rows (only visible rows)
+    const rows = document.querySelectorAll('.attendance-row');
+    rows.forEach(row => {
+        if (row.style.display !== 'none') {  // Only export visible rows
+            let rowData = [];
+            const cells = row.querySelectorAll('td');
+            cells.forEach(cell => {
+                // Check if cell contains a "P" or "A" (Present or Absent)
+                let cellContent = cell.textContent.trim();
+                rowData.push(cellContent ? cellContent : ''); // If no content, leave blank
+            });
+            csvContent += rowData.join(',') + '\n';
+        }
+    });
+    
+    // Create a Blob and trigger a download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.setAttribute('href', URL.createObjectURL(blob));
+    link.setAttribute('download', 'attendance_sheet.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
+
+// Function to filter attendees who are present from Dec 8 to Dec 13 or Dec 8 to Dec 14
+document.getElementById('filter-present-all-week').addEventListener('click', function() {
+    const rows = document.querySelectorAll('.attendance-row');
+    
+    rows.forEach(row => {
+        let isPresentDec8toDec13 = true;
+        let isPresentDec8toDec14 = true;
+
+        const cells = row.querySelectorAll('td');
+        
+        // Check attendance for Dec 8 to Dec 13 (6 days)
+        for (let i = 1; i <= 6; i++) { // Skipping the first cell (Name)
+            const cellContent = cells[i].textContent.trim();
+            if (cellContent !== 'P') {  // If any day is not present, mark as false
+                isPresentDec8toDec13 = false;
+            }
+        }
+
+        // Check attendance for Dec 8 to Dec 14 (7 days)
+        for (let i = 1; i <= 7; i++) { // Skipping the first cell (Name)
+            const cellContent = cells[i].textContent.trim();
+            if (cellContent !== 'P') {  // If any day is not present, mark as false
+                isPresentDec8toDec14 = false;
+            }
+        }
+
+        // Show or hide the row based on attendance
+        if (isPresentDec8toDec13 || isPresentDec8toDec14) {
+            row.style.display = '';  // Show row if present for either period
+        } else {
+            row.style.display = 'none';  // Hide row if not present for either period
+        }
+    });
+});
+</script>
+{% endblock %}
+
+{% endblock %}
+
