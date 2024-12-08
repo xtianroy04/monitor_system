@@ -135,6 +135,49 @@
     </div>
 
 </div>
+<!-- Modal for Registration -->
+<div class="modal fade" id="modalId" tabindex="-1" role="dialog" aria-labelledby="modalTitleId" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitleId">Register Attendee</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{% url 'register' %}">
+                    {% csrf_token %}
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" name="first_name" id="first_name" placeholder="First Name" autocomplete="off" required />
+                        <label for="first_name">First Name</label>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" name="last_name" id="last_name" placeholder="Last Name" autocomplete="off" required />
+                        <label for="last_name">Last Name</label>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" name="address" id="address" placeholder="Address" autocomplete="off" required />
+                        <label for="address">Address</label>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input type="number" class="form-control" name="age" id="age" placeholder="Age" autocomplete="off" required />
+                        <label for="age">Age</label>
+                    </div>
+                    <div class="form mb-3">
+                        <select class="form-control" name="is_adventist" id="is_adventist" autocomplete="off" required>
+                            <option value="" disabled selected>Adventist?</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Register</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- JavaScript for Search, Filter, and Export -->
 <script>
