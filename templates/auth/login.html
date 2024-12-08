@@ -1,0 +1,61 @@
+{% extends "index.html" %}
+{% load static %}
+{% block title %}Login |{% endblock %}
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center vh-100">
+    <div class="card shadow-lg" style="width: 25rem;">
+        <div class="card-body text-center">
+            <img src="{% static 'images/sda.png' %}" alt="Logo" class="img-fluid mb-4  justify-content-center" style="max-width: 100px;">
+            <h5 class="card-title text-center mb-4">Seventh Day Adventist</h5>  
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert 
+                        {% if message.tags == 'success' %}
+                            alert-success  <!-- Green for success -->
+                        {% elif message.tags == 'error' %}
+                            alert-danger  <!-- Red for error -->
+                        {% else %}
+                            alert-info     <!-- Blue for other types, e.g., warnings or info -->
+                        {% endif %}
+                    ">
+                        <p>{{ message }}</p>
+                    </div>
+                {% endfor %}
+            {% endif %}
+                   
+            <form action="{% url 'login' %}" method="POST">
+                {% csrf_token %}
+                <div class="form-floating mb-3">
+                    <input
+                        type="text"
+                        class="form-control"
+                        name="username"
+                        id="username"
+                        placeholder="Enter your username"
+                        required
+                        autocomplete="off"
+                    />
+                    <label for="username">Username</label>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input
+                        type="password"
+                        class="form-control"
+                        name="password"
+                        id="password"
+                        placeholder="Enter your password"
+                        required
+                        autocomplete="off"
+                    />
+                    <label for="password">Password</label>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-success">Login</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content%}

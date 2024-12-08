@@ -1,0 +1,146 @@
+{% extends "index.html" %}
+
+{% block title %}Attendee Details |{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+        <a class="navbar-brand" href="#">Manticao Central Church</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a href="{% url 'logout' %}" class="nav-link">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="container my-5">
+    <h1 class="display-4 mb-4 text-center">{{ attendee.first_name }} {{ attendee.last_name }} | Details</h1>
+
+    <div class="row">
+        <!-- Attendee Info Section -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5>Personal Information</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Address:</strong> {{ attendee.address }}</p>
+                    <p><strong>Age:</strong> {{ attendee.age }}</p>
+                    <p><strong>Is Adventist:</strong> {% if attendee.is_adventist == 'Yes' %} Yes {% else %} No {% endif %}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance History Section -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5>Attendance History</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Here is the attendance record for this attendee during December 2024.</p>
+                    <!-- Attendance Table -->
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover table-bordered text-center">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for date, status in attendance_data.items %}
+                                <tr>
+                                    <td class="date-cell" data-date="{{ date }}"></td>
+                                    <td>
+                                        {% if status == 'Present' %}
+                                            <span class="badge bg-success text-white">Present</span>
+                                        {% elif status == 'Absent' %}
+                                            <span class="badge bg-danger text-white">Absent</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary text-white">{{ status }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sign In Button & Modal -->
+    {% if today_status == None %}
+    <div class="text-center mt-4">
+        <button type="button" class="btn btn-success btn-lg" data-bs-toggle="modal" data-bs-target="#modalPresent-{{ attendee.id }}">
+            Sign In
+        </button>
+    </div>
+    {% else %}
+    <div class="text-center mt-4">
+        <span class="badge bg-success">You are already signed in today!</span>
+    </div>
+    {% endif %}
+
+    <!-- Modal for Sign In -->
+    <div
+        class="modal fade"
+        id="modalPresent-{{ attendee.id }}"
+        tabindex="-1"
+        role="dialog"
+        aria-labelledby="modalTitleId"
+        aria-hidden="true"
+    >
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitleId">
+                        Mark Attendance for {{ attendee.first_name }} {{ attendee.last_name }}
+                    </h5>
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close"
+                    ></button>
+                </div>
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <p>Is {{ attendee.first_name }} {{ attendee.last_name }} present today?</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button
+                        type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal"
+                    >
+                        Close
+                    </button>
+                    <form method="POST" action="{% url 'sign_in_attendee' attendee.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary">Yes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back Button -->
+    <div class="text-center mt-4">
+        <a href="{% url 'dashboard' %}" class="btn btn-primary btn-lg">Back to Dashboard</a>
+    </div>
+</div>
+
+{% endblock %}
