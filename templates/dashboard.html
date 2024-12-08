@@ -262,4 +262,19 @@
         });
     });
 </script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        {% if messages %}
+            {% for message in messages %}
+                Swal.fire({
+                    title: "{% if message.tags == 'success' %}Success!{% elif message.tags == 'error' %}Error!{% else %}Info{% endif %}",
+                    text: "{{ message }}",
+                    icon: "{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% else %}info{% endif %}",
+                    confirmButtonText: "OK"
+                });
+            {% endfor %}
+        {% endif %}
+    });
+</script>
+
 {% endblock %}
